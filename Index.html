@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Pencatatan Keuangan Organisasi</title>
+  
+  <!-- Font Modern Outfits -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    :root {
+      --bg-dark: #090d16;
+      --card-bg: #111827;
+      --card-border: #1e293b;
+      --input-bg: #1e293b;
+      --input-border: #334155;
+      --accent-pemasukan: #10b981;
+      --accent-pengeluaran: #f43f5e;
+      --accent-primary: #6366f1;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+                        radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.08) 0px, transparent 50%);
+      background-attachment: fixed;
+      font-family: 'Outfit', -apple-system, sans-serif;
+      color: #f8fafc;
+      font-size: 0.88rem;
+    }
+
+    .glass-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+
+    .wallet-card {
+      background: linear-gradient(135deg, #3730a3 0%, #5b21b6 100%);
+      border-radius: 18px;
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.3);
+    }
+
+    .wallet-card::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 200px;
+      height: 200px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .stat-box {
+      padding: 1rem;
+      border-radius: 12px;
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+    }
+
+    .stat-val {
+      font-size: clamp(1.1rem, 3.2vw, 1.45rem);
+      font-weight: 700;
+      word-break: break-word;
+    }
+
+    .form-control, .form-select, .input-group-text {
+      background-color: var(--input-bg) !important;
+      border: 1px solid var(--input-border) !important;
+      color: #f8fafc !important;
+      border-radius: 10px;
+      font-size: 0.85rem;
+    }
+
+    .form-control:focus, .form-select:focus,
+    .form-control:active, .form-select:active,
+    .form-control:valid, .form-select:valid {
+      background-color: var(--input-bg) !important;
+      color: #f8fafc !important;
+      border-color: #818cf8 !important;
+      box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.25) !important;
+    }
+
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover, 
+    input:-webkit-autofill:focus,
+    input:-webkit-autofill:active,
+    select:-webkit-autofill,
+    select:-webkit-autofill:hover,
+    select:-webkit-autofill:focus {
+      -webkit-box-shadow: 0 0 0 1000px #1e293b inset !important;
+      -webkit-text-fill-color: #f8fafc !important;
+      caret-color: #f8fafc !important;
+      transition: background-color 5000s ease-in-out 0s;
+    }
+
+    .form-select option {
+      background-color: #0f172a !important;
+      color: #f8fafc !important;
+    }
+
+    .form-control::placeholder {
+      color: #64748b !important;
+    }
+
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(1);
+      cursor: pointer;
+    }
+
+    input[type="file"]::file-selector-button {
+      background-color: #334155 !important;
+      color: #f8fafc !important;
+      border: none !important;
+      padding: 0.2rem 0.6rem !important;
+      border-radius: 6px !important;
+      margin-right: 8px !important;
+    }
+
+    .is-invalid {
+      border-color: #f43f5e !important;
+      background-image: none !important;
+      box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.35) !important;
+    }
+
+    .table-dark-custom {
+      color: #cbd5e1;
+      background-color: transparent;
+    }
+
+    .table-dark-custom th {
+      background-color: #0f172a !important;
+      color: #94a3b8;
+      font-weight: 600;
+      border-bottom: 1px solid var(--card-border);
+      padding: 0.85rem;
+    }
+
+    .table-dark-custom td {
+      background-color: transparent !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 0.85rem;
+      color: #f1f5f9;
+    }
+
+    .badge-masuk {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 0.3em 0.7em;
+      border-radius: 8px;
+    }
+
+    .badge-keluar {
+      background: rgba(244, 63, 94, 0.15);
+      color: #fb7185;
+      border: 1px solid rgba(244, 63, 94, 0.3);
+      padding: 0.3em 0.7em;
+      border-radius: 8px;
+    }
+
+    @media (max-width: 576px) {
+      .container {
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+      .wallet-card {
+        padding: 1.1rem;
+      }
+    }
+  </style>
+</head>
+<body class="pb-5">
+
+  <nav class="navbar navbar-dark py-3 mb-3">
+    <div class="container">
+      <div class="d-flex align-items-center">
+        <div class="p-2 rounded-3 me-2 text-white bg-indigo bg-opacity-25 border border-white border-opacity-10 d-flex align-items-center justify-content-center" style="width:38px; height:38px; background: rgba(99, 102, 241, 0.2);">
+          <i class="fa-solid fa-wallet text-indigo" style="color:#818cf8;"></i>
+        </div>
+        <div>
+          <h6 class="fw-bold mb-0 text-white">Kas Organisasi</h6>
+          <small class="text-secondary" style="font-size: 0.7rem;">Executive Financial Portal</small>
+        </div>
+      </div>
+
+      <div class="d-flex align-items-center gap-2">
+        <span id="statusLogin" class="badge bg-dark text-secondary border border-secondary px-2 py-1">
+          <i class="fa-solid fa-user me-1"></i>Tamu
+        </span>
+        <button id="btnAuth" class="btn btn-sm btn-outline-light px-3 fw-semibold" onclick="toggleAuthModal()" style="border-radius: 10px;">
+          <i class="fa-solid fa-right-to-bracket me-1"></i>Login Admin
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+
+    <div class="row g-3 mb-4">
+      <div class="col-12 col-md-5">
+        <div class="wallet-card h-100 d-flex flex-column justify-content-between">
+          <div>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="text-white-50 small uppercase">Saldo Akhir Tersedia</span>
+              <i class="fa-solid fa-vault text-white-50"></i>
+            </div>
+            <div id="txtSaldo" class="stat-val text-white fs-2 mb-2">Rp 0</div>
+          </div>
+          <div class="pt-2 border-top border-white border-opacity-10 d-flex justify-content-between align-items-center">
+            <span id="badgeStatusKas" class="badge bg-white bg-opacity-20 text-white fw-normal">
+              Memuat status...
+            </span>
+            <small class="text-white-50" style="font-size: 0.7rem;">Realtime Sync</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-7">
+        <div class="glass-card p-3 h-100 d-flex flex-column justify-content-center">
+          <div class="row g-2">
+            <div class="col-6">
+              <div class="stat-box">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                  <div class="p-1 rounded bg-success bg-opacity-25 text-success">
+                    <i class="fa-solid fa-arrow-down-left"></i>
+                  </div>
+                  <span class="text-secondary small">Pemasukan</span>
+                </div>
+                <div id="txtPemasukan" class="stat-val text-emerald" style="color: #34d399;">Rp 0</div>
+              </div>
+            </div>
+
+            <div class="col-6">
+              <div class="stat-box">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                  <div class="p-1 rounded bg-danger bg-opacity-25 text-danger">
+                    <i class="fa-solid fa-arrow-up-right"></i>
+                  </div>
+                  <span class="text-secondary small">Pengeluaran</span>
+                </div>
+                <div id="txtPengeluaran" class="stat-val text-rose" style="color: #fb7185;">Rp 0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="secForm" class="glass-card p-3 p-md-4 mb-4 d-none">
+      <div class="d-flex align-items-center justify-content-between mb-3 border-bottom border-secondary border-opacity-25 pb-2">
+        <h6 class="fw-bold mb-0 text-indigo" style="color: #818cf8;">
+          <i class="fa-solid fa-circle-plus me-1"></i>Input Transaksi Baru
+        </h6>
+        <small class="text-secondary">*Kolom wajib diisi</small>
+      </div>
+
+      <form id="formTransaksi" onsubmit="handleSimpan(event)" novalidate>
+        <div class="row g-2 g-md-3">
+          <div class="col-12 col-md-3">
+            <label class="form-label small text-secondary mb-1">Tanggal *</label>
+            <input type="date" id="tanggal" class="form-control" oninput="hapusTandaEror(this)" required>
+          </div>
+
+          <div class="col-12 col-md-3">
+            <label class="form-label small text-secondary mb-1">Jenis Transaksi *</label>
+            <select id="jenis" class="form-select" onchange="hapusTandaEror(this)" required>
+              <option value="" selected disabled>-- Pilih Jenis --</option>
+              <option value="Pemasukan">Pemasukan</option>
+              <option value="Pengeluaran">Pengeluaran</option>
+            </select>
+          </div>
+
+          <div class="col-12 col-md-3">
+            <label class="form-label small text-secondary mb-1">Kategori *</label>
+            <input type="text" id="kategori" class="form-control" placeholder="Contoh: Iuran / Konsumsi" oninput="hapusTandaEror(this)" required>
+          </div>
+
+          <div class="col-12 col-md-3">
+            <label class="form-label small text-secondary mb-1">Jumlah (Rp) *</label>
+            <input type="text" id="jumlah" class="form-control" placeholder="0" onkeyup="formatRupiahInput(this)" oninput="hapusTandaEror(this)" required>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label class="form-label small text-secondary mb-1">Keterangan</label>
+            <input type="text" id="keterangan" class="form-control" placeholder="Detail catatan transaksi">
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label class="form-label small text-secondary mb-1">Upload File Nota (Opsional)</label>
+            <input type="file" id="fotoNota" class="form-control" accept="image/*,application/pdf">
+          </div>
+        </div>
+
+        <div class="mt-3 text-end">
+          <button type="submit" id="btnSimpan" class="btn btn-primary px-4 py-2 fw-semibold w-100 w-md-auto" style="border-radius: 10px; background: #6366f1; border:none;">
+            <i class="fa-solid fa-floppy-disk me-1"></i>Simpan Transaksi
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="glass-card p-3 p-md-4">
+      <div class="row g-2 align-items-center mb-3">
+        <div class="col-12 col-md-6">
+          <div class="input-group input-group-sm">
+            <span class="input-group-text bg-dark border-secondary border-opacity-25 text-secondary">
+              <i class="fa-solid fa-magnifying-glass"></i>
+            </span>
+            <input type="text" id="searchKeyword" class="form-control" placeholder="Cari transaksi kas..." onkeyup="filterDanTampilkanData()">
+          </div>
+        </div>
+
+        <div class="col-12 col-md-6 text-end">
+          <select id="filterPeriode" class="form-select form-select-sm" onchange="filterDanTampilkanData()">
+            <option value="semua">Semua Waktu</option>
+            <option value="minggu">Minggu Ini (7 Hari)</option>
+            <option value="bulan" selected>Bulan Ini</option>
+            <option value="tahun">Tahun Ini</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-dark-custom align-middle mb-0">
+          <thead>
+            <tr class="small">
+              <th>TANGGAL</th>
+              <th>JENIS</th>
+              <th>KATEGORI</th>
+              <th>JUMLAH</th>
+              <th>KETERANGAN</th>
+              <th>NOTA</th>
+            </tr>
+          </thead>
+          <tbody id="tabelBody" class="small">
+            <tr>
+              <td colspan="6" class="text-center text-secondary py-4">
+                <i class="fa-solid fa-circle-notch fa-spin me-2 text-indigo"></i>Memuat riwayat kas...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="modal fade" id="modalAuth" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+      <div class="modal-content glass-card border-0" style="background: #1e293b;">
+        <div class="modal-header border-bottom border-secondary border-opacity-25 pb-2">
+          <h6 class="modal-title fw-bold text-white"><i class="fa-solid fa-lock text-indigo me-2"></i>Login Admin</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-2">
+            <label class="form-label small text-secondary mb-1">Username</label>
+            <input type="text" id="userInput" class="form-control" placeholder="Username" oninput="hapusTandaEror(this)">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small text-secondary mb-1">PIN Admin</label>
+            <input type="password" id="pinInput" class="form-control" placeholder="******" oninput="hapusTandaEror(this)">
+          </div>
+          <button type="button" class="btn btn-primary w-100 fw-semibold py-2" style="background: #6366f1; border:none; border-radius: 10px;" onclick="prosesLogin()">
+            Masuk
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // PASANG URL WEB APP DARI GOOGLE APPS SCRIPT ANDA DI BAWAH INI
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxyIhiHLY9FGbYjlnj04sWKrrZsYIkjPlaBm_24Ju5iInjg_okIC_HFeosnxjS44jvZGQ/exec";
+
+    let rawDataTransaksi = [];
+    let activeUsername = null;
+    let activePin = null;
+
+    document.addEventListener("DOMContentLoaded", function() {
+      document.getElementById('tanggal').value = new Date().toISOString().split('T')[0];
+      muatData();
+    });
+
+    function hapusTandaEror(el) {
+      if (el.classList.contains('is-invalid')) {
+        el.classList.remove('is-invalid');
+      }
+    }
+
+    function formatRupiahInput(el) {
+      let val = el.value.replace(/\D/g, '');
+      el.value = val ? Number(val).toLocaleString('id-ID') : '';
+    }
+
+    function formatRupiah(angka) {
+      return "Rp " + Number(angka).toLocaleString('id-ID');
+    }
+
+    function toggleAuthModal() {
+      if (activeUsername) {
+        activeUsername = null;
+        activePin = null;
+        document.getElementById('statusLogin').className = "badge bg-dark text-secondary border border-secondary px-2 py-1";
+        document.getElementById('statusLogin').innerHTML = `<i class="fa-solid fa-user me-1"></i>Tamu`;
+        document.getElementById('btnAuth').innerHTML = `<i class="fa-solid fa-right-to-bracket me-1"></i>Login Admin`;
+        document.getElementById('secForm').classList.add('d-none');
+        Swal.fire({ icon: 'info', title: 'Logout', text: 'Anda telah keluar dari mode Admin.', timer: 1500, showConfirmButton: false });
+      } else {
+        const modal = new bootstrap.Modal(document.getElementById('modalAuth'));
+        modal.show();
+      }
+    }
+
+    function prosesLogin() {
+      const uEl = document.getElementById('userInput');
+      const pEl = document.getElementById('pinInput');
+      const u = uEl.value.trim();
+      const p = pEl.value.trim();
+
+      let hasError = false;
+      if (!u) { uEl.classList.add('is-invalid'); hasError = true; }
+      if (!p) { pEl.classList.add('is-invalid'); hasError = true; }
+
+      if (hasError) return;
+
+      const payload = {
+        action: "verifikasiAdmin",
+        username: u,
+        pin: p
+      };
+
+      fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          activeUsername = u;
+          activePin = p;
+          document.getElementById('statusLogin').className = "badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-25 px-2 py-1";
+          document.getElementById('statusLogin').innerHTML = `<i class="fa-solid fa-user-check me-1"></i>Admin: ${u}`;
+          document.getElementById('btnAuth').innerHTML = `<i class="fa-solid fa-right-from-bracket me-1"></i>Logout`;
+          document.getElementById('secForm').classList.remove('d-none');
+          
+          bootstrap.Modal.getInstance(document.getElementById('modalAuth')).hide();
+          uEl.value = '';
+          pEl.value = '';
+          Swal.fire({ icon: 'success', title: 'Berhasil Login', text: 'Selamat datang kembali, Admin!', timer: 1500, showConfirmButton: false });
+        } else {
+          uEl.classList.add('is-invalid');
+          pEl.classList.add('is-invalid');
+          Swal.fire({ icon: 'error', title: 'Gagal Login', text: res.message });
+        }
+      })
+      .catch(err => {
+        console.error("Error login:", err);
+        Swal.fire('Error', 'Terjadi kesalahan koneksi.', 'error');
+      });
+    }
+
+    function muatData() {
+      fetch(`${SCRIPT_URL}?action=ambilData`)
+        .then(res => res.json())
+        .then(result => {
+          if (result.success) {
+            rawDataTransaksi = result.data;
+            filterDanTampilkanData();
+          } else {
+            throw new Error(result.message);
+          }
+        })
+        .catch(err => {
+          console.error("Gagal muat data:", err);
+          document.getElementById('tabelBody').innerHTML = `
+            <tr><td colspan="6" class="text-center text-danger py-3">Gagal mengambil data dari Google Spreadsheet.</td></tr>
+          `;
+        });
+    }
+
+    function filterDanTampilkanData() {
+      const periode = document.getElementById('filterPeriode').value;
+      const keyword = document.getElementById('searchKeyword').value.toLowerCase().trim();
+      const now = new Date();
+      
+      const filteredData = rawDataTransaksi.filter(row => {
+        let matchPeriode = true;
+        const tgl = new Date(row[1]); 
+
+        if (!isNaN(tgl.getTime())) {
+          if (periode === 'minggu') {
+            const selisihHari = (now - tgl) / (1000 * 60 * 60 * 24);
+            matchPeriode = selisihHari >= 0 && selisihHari <= 7;
+          } else if (periode === 'bulan') {
+            matchPeriode = tgl.getMonth() === now.getMonth() && tgl.getFullYear() === now.getFullYear();
+          } else if (periode === 'tahun') {
+            matchPeriode = tgl.getFullYear() === now.getFullYear();
+          }
+        }
+
+        let matchKeyword = true;
+        if (keyword) {
+          const textRow = (row[2] + " " + row[3] + " " + row[5]).toLowerCase();
+          matchKeyword = textRow.includes(keyword);
+        }
+
+        return matchPeriode && matchKeyword;
+      });
+
+      tampilkanData(filteredData);
+      updateRingkasan(filteredData);
+    }
+
+    function tampilkanData(data) {
+      const tbody = document.getElementById('tabelBody');
+      tbody.innerHTML = '';
+
+      if (data.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="text-center text-secondary py-4">
+              Tidak ada riwayat transaksi kas yang ditemukan.
+            </td>
+          </tr>`;
+        return;
+      }
+
+      data.forEach(row => {
+        const isPemasukan = row[2] === 'Pemasukan';
+        const badgeClass = isPemasukan ? 'badge-masuk' : 'badge-keluar';
+        const nominalFormatted = formatRupiah(row[4]);
+        const linkNota = (row[6] && row[6] !== '-') 
+          ? `<a href="${row[6]}" target="_blank" class="btn btn-sm btn-outline-light py-0 px-2" style="font-size:0.75rem;"><i class="fa-solid fa-receipt me-1"></i>Nota</a>` 
+          : '-';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="fw-semibold text-secondary">${row[1]}</td>
+          <td><span class="${badgeClass}">${row[2]}</span></td>
+          <td class="text-white">${row[3]}</td>
+          <td class="fw-bold ${isPemasukan ? 'text-emerald' : 'text-rose'}" style="color: ${isPemasukan ? '#34d399' : '#fb7185'};">${nominalFormatted}</td>
+          <td class="text-secondary">${row[5] || '-'}</td>
+          <td>${linkNota}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function updateRingkasan(data) {
+      let totalMasuk = 0;
+      let totalKeluar = 0;
+
+      data.forEach(row => {
+        const jml = Number(row[4]) || 0;
+        if (row[2] === 'Pemasukan') totalMasuk += jml;
+        else if (row[2] === 'Pengeluaran') totalKeluar += jml;
+      });
+
+      const saldo = totalMasuk - totalKeluar;
+
+      document.getElementById('txtPemasukan').innerText = formatRupiah(totalMasuk);
+      document.getElementById('txtPengeluaran').innerText = formatRupiah(totalKeluar);
+      document.getElementById('txtSaldo').innerText = formatRupiah(saldo);
+
+      const badge = document.getElementById('badgeStatusKas');
+      if (saldo >= 0) {
+        badge.className = "badge bg-success bg-opacity-20 text-white border border-success border-opacity-25";
+        badge.innerHTML = `<i class="fa-solid fa-circle-check me-1"></i>Kas Surplus`;
+      } else {
+        badge.className = "badge bg-danger bg-opacity-20 text-white border border-danger border-opacity-25";
+        badge.innerHTML = `<i class="fa-solid fa-triangle-exclamation me-1"></i>Kas Defisit`;
+      }
+    }
+
+    function handleSimpan(e) {
+      e.preventDefault();
+
+      const tglEl = document.getElementById('tanggal');
+      const jenisEl = document.getElementById('jenis');
+      const katEl = document.getElementById('kategori');
+      const jmlEl = document.getElementById('jumlah');
+
+      let hasError = false;
+
+      if (!tglEl.value) { tglEl.classList.add('is-invalid'); hasError = true; }
+      if (!jenisEl.value) { jenisEl.classList.add('is-invalid'); hasError = true; }
+      if (!katEl.value.trim()) { katEl.classList.add('is-invalid'); hasError = true; }
+      if (!jmlEl.value.trim()) { jmlEl.classList.add('is-invalid'); hasError = true; }
+
+      if (hasError) return;
+
+      if (!activeUsername || !activePin) {
+        Swal.fire('Akses Ditolak', 'Silakan login Admin terlebih dahulu.', 'warning');
+        return;
+      }
+
+      const btn = document.getElementById('btnSimpan');
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin me-1"></i> Menyimpan...`;
+
+      const fileInput = document.getElementById('fotoNota');
+      const file = fileInput.files[0];
+      const rawJumlah = jmlEl.value.replace(/\D/g, '');
+
+      const payload = {
+        action: "simpanTransaksi",
+        data: {
+          tanggal: tglEl.value,
+          jenis: jenisEl.value,
+          kategori: katEl.value.trim(),
+          jumlah: Number(rawJumlah),
+          keterangan: document.getElementById('keterangan').value.trim(),
+          usernameAdmin: activeUsername,
+          pinAdmin: activePin,
+          fileData: null,
+          fileName: null,
+          fileType: null
+        }
+      };
+
+      const prosesKirim = (dataPayload) => {
+        fetch(SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(dataPayload)
+        })
+        .then(res => res.json())
+        .then(resMsg => {
+          btn.disabled = false;
+          btn.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i>Simpan Transaksi`;
+          
+          if (resMsg.success) {
+            document.getElementById('formTransaksi').reset();
+            document.getElementById('tanggal').value = new Date().toISOString().split('T')[0];
+            
+            Swal.fire({ icon: 'success', title: 'Berhasil!', text: resMsg.message, timer: 1500, showConfirmButton: false });
+            muatData();
+          } else {
+            Swal.fire('Gagal', resMsg.message, 'error');
+          }
+        })
+        .catch(err => {
+          btn.disabled = false;
+          btn.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i>Simpan Transaksi`;
+          Swal.fire('Gagal', err.message, 'error');
+        });
+      };
+
+      if (file) {
+        if (file.size > 5 * 1024 * 1024) {
+          btn.disabled = false;
+          btn.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i>Simpan Transaksi`;
+          Swal.fire('File Terlalu Besar', 'Maksimal ukuran file nota 5MB.', 'warning');
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          payload.data.fileData = evt.target.result;
+          payload.data.fileName = file.name;
+          payload.data.fileType = file.type;
+          prosesKirim(payload);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        prosesKirim(payload);
+      }
+    }
+  </script>
+</body>
+</html>
