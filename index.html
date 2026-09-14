@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
-<link rel="manifest" href="/manifest.json">
+<head>
+  <link rel="manifest" href="/manifest.json">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>Pencatatan Keuangan Organisasi</title>
@@ -8,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <style>
@@ -168,7 +170,6 @@
       border-radius: 8px;
     }
 
-    /* Penyesuaian SweetAlert Tema Gelap */
     .swal2-popup-dark {
       background-color: #1e293b !important;
       color: #f8fafc !important;
@@ -307,8 +308,8 @@
           </div>
 
           <div class="col-12 col-md-6">
-            <label class="form-label small text-secondary mb-1">Upload File Nota (Opsional)</label>
-            <input type="file" id="fotoNota" class="form-control nav-enter" accept="image/*,application/pdf">
+            <label class="form-label small text-secondary mb-1">Upload File Nota *</label>
+            <input type="file" id="fotoNota" class="form-control nav-enter" accept="image/*,application/pdf" onchange="hapusTandaEror(this)" required>
           </div>
         </div>
 
@@ -486,9 +487,22 @@
       if (!u) { uEl.classList.add('is-invalid'); hasError = true; }
       if (!p) { pEl.classList.add('is-invalid'); hasError = true; }
 
-      if (hasError) return;
+      if (hasError) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Input Tidak Lengkap',
+          text: 'Username dan PIN wajib diisi!',
+          showClass: {
+            popup: 'animate__animated animate__shakeX'
+          },
+          hideClass: {
+            popup: 'animate__animated animate__fadeOutUp'
+          },
+          customClass: { popup: 'swal2-popup-dark' }
+        });
+        return;
+      }
 
-      // === PENAMBAHAN ANIMASI LOADING LOGIN ===
       Swal.fire({
         title: 'Memverifikasi Admin...',
         text: 'Mohon tunggu sebentar',
@@ -700,6 +714,7 @@
       const jenisEl = document.getElementById('jenis');
       const katEl = document.getElementById('kategori');
       const jmlEl = document.getElementById('jumlah');
+      const fileInput = document.getElementById('fotoNota');
 
       let hasError = false;
 
@@ -707,8 +722,23 @@
       if (!jenisEl.value) { jenisEl.classList.add('is-invalid'); hasError = true; }
       if (!katEl.value.trim()) { katEl.classList.add('is-invalid'); hasError = true; }
       if (!jmlEl.value.trim()) { jmlEl.classList.add('is-invalid'); hasError = true; }
+      if (!fileInput.files || fileInput.files.length === 0) { fileInput.classList.add('is-invalid'); hasError = true; }
 
-      if (hasError) return;
+      if (hasError) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Data Belum Lengkap',
+          text: 'Harap isi semua kolom bertanda (*) termasuk unggah file nota.',
+          showClass: {
+            popup: 'animate__animated animate__headShake'
+          },
+          hideClass: {
+            popup: 'animate__animated animate__fadeOut'
+          },
+          customClass: { popup: 'swal2-popup-dark' }
+        });
+        return;
+      }
 
       if (!activeUsername || !activePin) {
         Swal.fire({
@@ -724,7 +754,6 @@
       btn.disabled = true;
       btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin me-1"></i> Menyimpan...`;
 
-      const fileInput = document.getElementById('fotoNota');
       const file = fileInput.files[0];
       const rawJumlah = jmlEl.value.replace(/\D/g, '');
 
