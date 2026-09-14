@@ -5,13 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>Pencatatan Keuangan Organisasi</title>
   
-  <!-- Font Modern Outfits -->
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <!-- Bootstrap 5 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <style>
@@ -386,8 +382,8 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
-    // URL Web App Google Apps Script Aktif
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw5l3OtWH08QLtH3MjmC8H4R7oaTGSBYBrjIGSRhWRuFY59g8auMD673pjtJlbJzE_0tA/exec";
+    // MASUKKAN URL WEB APP APPS SCRIPT HASIL DEPLOYMENT TERBARU ANDA DI BAWAH INI
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxGzXDHtxoeuL_QZqE--XAzRdTZDB_MHSOI-LZpaws0uzvt9neNHl1hkgri0g40u1l5Xg/exec";
 
     let rawDataTransaksi = [];
     let activeUsername = null;
@@ -423,7 +419,8 @@
         document.getElementById('secForm').classList.add('d-none');
         Swal.fire({ icon: 'info', title: 'Logout', text: 'Anda telah keluar dari mode Admin.', timer: 1500, showConfirmButton: false });
       } else {
-        const modal = new bootstrap.Modal(document.getElementById('modalAuth'));
+        const modalEl = document.getElementById('modalAuth');
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
         modal.show();
       }
     }
@@ -461,7 +458,10 @@
           document.getElementById('btnAuth').innerHTML = `<i class="fa-solid fa-right-from-bracket me-1"></i>Logout`;
           document.getElementById('secForm').classList.remove('d-none');
           
-          bootstrap.Modal.getInstance(document.getElementById('modalAuth')).hide();
+          const modalEl = document.getElementById('modalAuth');
+          const modal = bootstrap.Modal.getInstance(modalEl);
+          if (modal) modal.hide();
+
           uEl.value = '';
           pEl.value = '';
           Swal.fire({ icon: 'success', title: 'Berhasil Login', text: 'Selamat datang kembali, Admin!', timer: 1500, showConfirmButton: false });
@@ -482,7 +482,7 @@
         .then(res => res.json())
         .then(result => {
           if (result.success) {
-            rawDataTransaksi = result.data;
+            rawDataTransaksi = result.data || [];
             filterDanTampilkanData();
           } else {
             throw new Error(result.message);
@@ -500,10 +500,25 @@
       const periode = document.getElementById('filterPeriode').value;
       const keyword = document.getElementById('searchKeyword').value.toLowerCase().trim();
       const now = new Date();
-      
+
       const filteredData = rawDataTransaksi.filter(row => {
         let matchPeriode = true;
-        const tgl = new Date(row[1]); 
+        
+        let rawTgl = row[1];
+        let tgl;
+        
+        if (typeof rawTgl === 'string' && rawTgl.includes('T')) {
+          tgl = new Date(rawTgl);
+        } else if (typeof rawTgl === 'string' && rawTgl.includes('-')) {
+          const parts = rawTgl.split('-');
+          if (parts[0].length === 4) {
+            tgl = new Date(parts[0], parts[1] - 1, parts[2]);
+          } else {
+            tgl = new Date(parts[2], parts[1] - 1, parts[0]);
+          }
+        } else {
+          tgl = new Date(rawTgl);
+        }
 
         if (!isNaN(tgl.getTime())) {
           if (periode === 'minggu') {
@@ -518,7 +533,7 @@
 
         let matchKeyword = true;
         if (keyword) {
-          const textRow = (row[2] + " " + row[3] + " " + row[5]).toLowerCase();
+          const textRow = ((row[2] || "") + " " + (row[3] || "") + " " + (row[5] || "")).toLowerCase();
           matchKeyword = textRow.includes(keyword);
         }
 
@@ -546,16 +561,22 @@
       data.forEach(row => {
         const isPemasukan = row[2] === 'Pemasukan';
         const badgeClass = isPemasukan ? 'badge-masuk' : 'badge-keluar';
-        const nominalFormatted = formatRupiah(row[4]);
+        const nominalFormatted = formatRupiah(row[4] || 0);
+        
+        let tglDisplay = row[1];
+        if (tglDisplay && typeof tglDisplay === 'string' && tglDisplay.includes('T')) {
+          tglDisplay = tglDisplay.split('T')[0];
+        }
+
         const linkNota = (row[6] && row[6] !== '-') 
           ? `<a href="${row[6]}" target="_blank" class="btn btn-sm btn-outline-light py-0 px-2" style="font-size:0.75rem;"><i class="fa-solid fa-receipt me-1"></i>Nota</a>` 
           : '-';
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td class="fw-semibold text-secondary">${row[1]}</td>
-          <td><span class="${badgeClass}">${row[2]}</span></td>
-          <td class="text-white">${row[3]}</td>
+          <td class="fw-semibold text-secondary">${tglDisplay || '-'}</td>
+          <td><span class="${badgeClass}">${row[2] || '-'}</span></td>
+          <td class="text-white">${row[3] || '-'}</td>
           <td class="fw-bold ${isPemasukan ? 'text-emerald' : 'text-rose'}" style="color: ${isPemasukan ? '#34d399' : '#fb7185'};">${nominalFormatted}</td>
           <td class="text-secondary">${row[5] || '-'}</td>
           <td>${linkNota}</td>
