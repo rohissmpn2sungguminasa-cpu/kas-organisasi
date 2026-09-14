@@ -261,19 +261,19 @@
         <h6 class="fw-bold mb-0 text-indigo" style="color: #818cf8;">
           <i class="fa-solid fa-circle-plus me-1"></i>Input Transaksi Baru
         </h6>
-        <small class="text-secondary">*Kolom wajib diisi</small>
+        <small class="text-secondary">*Gunakan Enter untuk berpindah kolom</small>
       </div>
 
       <form id="formTransaksi" onsubmit="handleSimpan(event)" novalidate>
         <div class="row g-2 g-md-3">
           <div class="col-12 col-md-3">
             <label class="form-label small text-secondary mb-1">Tanggal *</label>
-            <input type="date" id="tanggal" class="form-control" oninput="hapusTandaEror(this)" required>
+            <input type="date" id="tanggal" class="form-control nav-enter" oninput="hapusTandaEror(this)" required>
           </div>
 
           <div class="col-12 col-md-3">
             <label class="form-label small text-secondary mb-1">Jenis Transaksi *</label>
-            <select id="jenis" class="form-select" onchange="hapusTandaEror(this)" required>
+            <select id="jenis" class="form-select nav-enter" onchange="hapusTandaEror(this)" required>
               <option value="" selected disabled>-- Pilih Jenis --</option>
               <option value="Pemasukan">Pemasukan</option>
               <option value="Pengeluaran">Pengeluaran</option>
@@ -282,22 +282,22 @@
 
           <div class="col-12 col-md-3">
             <label class="form-label small text-secondary mb-1">Kategori *</label>
-            <input type="text" id="kategori" class="form-control" placeholder="Contoh: Iuran / Konsumsi" oninput="hapusTandaEror(this)" required>
+            <input type="text" id="kategori" class="form-control nav-enter" placeholder="Contoh: Iuran / Konsumsi" oninput="hapusTandaEror(this)" required>
           </div>
 
           <div class="col-12 col-md-3">
             <label class="form-label small text-secondary mb-1">Jumlah (Rp) *</label>
-            <input type="text" id="jumlah" class="form-control" placeholder="0" onkeyup="formatRupiahInput(this)" oninput="hapusTandaEror(this)" required>
+            <input type="text" id="jumlah" class="form-control nav-enter" placeholder="0" onkeyup="formatRupiahInput(this)" oninput="hapusTandaEror(this)" required>
           </div>
 
           <div class="col-12 col-md-6">
             <label class="form-label small text-secondary mb-1">Keterangan</label>
-            <input type="text" id="keterangan" class="form-control" placeholder="Detail catatan transaksi">
+            <input type="text" id="keterangan" class="form-control nav-enter" placeholder="Detail catatan transaksi">
           </div>
 
           <div class="col-12 col-md-6">
             <label class="form-label small text-secondary mb-1">Upload File Nota (Opsional)</label>
-            <input type="file" id="fotoNota" class="form-control" accept="image/*,application/pdf">
+            <input type="file" id="fotoNota" class="form-control nav-enter" accept="image/*,application/pdf">
           </div>
         </div>
 
@@ -365,11 +365,11 @@
         <div class="modal-body">
           <div class="mb-2">
             <label class="form-label small text-secondary mb-1">Username</label>
-            <input type="text" id="userInput" class="form-control" placeholder="Username" oninput="hapusTandaEror(this)">
+            <input type="text" id="userInput" class="form-control nav-login" placeholder="Username" oninput="hapusTandaEror(this)">
           </div>
           <div class="mb-3">
             <label class="form-label small text-secondary mb-1">PIN Admin</label>
-            <input type="password" id="pinInput" class="form-control" placeholder="******" oninput="hapusTandaEror(this)">
+            <input type="password" id="pinInput" class="form-control nav-login" placeholder="******" oninput="hapusTandaEror(this)">
           </div>
           <button type="button" class="btn btn-primary w-100 fw-semibold py-2" style="background: #6366f1; border:none; border-radius: 10px;" onclick="prosesLogin()">
             Masuk
@@ -382,7 +382,6 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
-    // MASUKKAN URL WEB APP APPS SCRIPT HASIL DEPLOYMENT TERBARU ANDA DI BAWAH INI
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxGzXDHtxoeuL_QZqE--XAzRdTZDB_MHSOI-LZpaws0uzvt9neNHl1hkgri0g40u1l5Xg/exec";
 
     let rawDataTransaksi = [];
@@ -392,7 +391,43 @@
     document.addEventListener("DOMContentLoaded", function() {
       document.getElementById('tanggal').value = new Date().toISOString().split('T')[0];
       muatData();
+      inisiatorPindahEnter();
     });
+
+    // PERBAIKAN & PENAMBAHAN FUNGSI ENTER NAVIGASI
+    function inisiatorPindahEnter() {
+      // Navigasi Enter Form Transaksi
+      const inputsForm = Array.from(document.querySelectorAll('#formTransaksi .nav-enter'));
+      inputsForm.forEach((element, index) => {
+        element.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            const nextInput = inputsForm[index + 1];
+            if (nextInput) {
+              nextInput.focus();
+            } else {
+              document.getElementById('btnSimpan').click();
+            }
+          }
+        });
+      });
+
+      // Navigasi Enter Form Login Admin
+      const inputsLogin = Array.from(document.querySelectorAll('#modalAuth .nav-login'));
+      inputsLogin.forEach((element, index) => {
+        element.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            const nextInput = inputsLogin[index + 1];
+            if (nextInput) {
+              nextInput.focus();
+            } else {
+              prosesLogin();
+            }
+          }
+        });
+      });
+    }
 
     function hapusTandaEror(el) {
       if (el.classList.contains('is-invalid')) {
@@ -422,6 +457,7 @@
         const modalEl = document.getElementById('modalAuth');
         const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
         modal.show();
+        setTimeout(() => document.getElementById('userInput').focus(), 400);
       }
     }
 
@@ -465,6 +501,7 @@
           uEl.value = '';
           pEl.value = '';
           Swal.fire({ icon: 'success', title: 'Berhasil Login', text: 'Selamat datang kembali, Admin!', timer: 1500, showConfirmButton: false });
+          setTimeout(() => document.getElementById('tanggal').focus(), 500);
         } else {
           uEl.classList.add('is-invalid');
           pEl.classList.add('is-invalid');
@@ -503,7 +540,6 @@
 
       const filteredData = rawDataTransaksi.filter(row => {
         let matchPeriode = true;
-        
         let rawTgl = row[1];
         let tgl;
         
@@ -674,6 +710,7 @@
             
             Swal.fire({ icon: 'success', title: 'Berhasil!', text: resMsg.message, timer: 1500, showConfirmButton: false });
             muatData();
+            setTimeout(() => document.getElementById('tanggal').focus(), 500);
           } else {
             Swal.fire('Gagal', resMsg.message, 'error');
           }
