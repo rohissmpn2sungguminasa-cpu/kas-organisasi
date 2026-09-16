@@ -1,3 +1,26 @@
+Berikut adalah penyesuaian untuk tampilan SweetAlert saat Logout. Warna latar belakangnya disamakan persis dengan modal login (#1e293b), namun ikon tetap berwarna merah untuk menandakan tindakan keluar.
+Perubahan CSS
+Ganti blok .swal2-popup-logout pada bagian <style> di kode HTML Anda dengan CSS berikut:
+/* Modifikasi Alert Logout (Background Gelap & Logo Merah) */
+.swal2-popup-logout {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border: 1px solid #334155 !important;
+  border-radius: 16px !important;
+}
+.swal2-popup-logout .swal2-title,
+.swal2-popup-logout .swal2-html-container {
+  color: #ffffff !important;
+}
+.swal2-popup-logout .swal2-icon.swal2-error {
+  border-color: #f43f5e !important;
+  color: #f43f5e !important;
+}
+.swal2-popup-logout .swal2-icon.swal2-error [class^='swal2-x-mark-line'] {
+  background-color: #f43f5e !important;
+}
+
+Kode HTML Lengkap yang Sudah Diperbarui
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -133,7 +156,6 @@
       box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.35) !important;
     }
 
-    /* Animasi Shake untuk Input Error */
     .shake {
       animation: shakeAnim 0.4s ease-in-out;
     }
@@ -144,7 +166,6 @@
       40%, 80% { transform: translateX(6px); }
     }
 
-    /* Indikator Titik PIN Lockscreen */
     .pin-dots {
       display: flex;
       justify-content: center;
@@ -170,7 +191,6 @@
       box-shadow: 0 0 10px rgba(244, 63, 94, 0.6);
     }
 
-    /* Keypad Angka Layar Sentuh */
     .pin-keypad {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -244,7 +264,6 @@
       border-radius: 8px;
     }
 
-    /* Penyesuaian SweetAlert Tema Gelap */
     .swal2-popup-dark {
       background-color: #1e293b !important;
       color: #f8fafc !important;
@@ -255,16 +274,23 @@
       color: #ffffff !important;
     }
 
-    /* Modifikasi Khusus Alert Logout Merah */
+    /* Modifikasi Alert Logout (Background Gelap & Logo Merah) */
     .swal2-popup-logout {
-      background-color: #881337 !important;
-      color: #ffffff !important;
-      border: 1px solid #f43f5e !important;
+      background-color: #1e293b !important;
+      color: #f8fafc !important;
+      border: 1px solid #334155 !important;
       border-radius: 16px !important;
     }
     .swal2-popup-logout .swal2-title,
     .swal2-popup-logout .swal2-html-container {
       color: #ffffff !important;
+    }
+    .swal2-popup-logout .swal2-icon.swal2-error {
+      border-color: #f43f5e !important;
+      color: #f43f5e !important;
+    }
+    .swal2-popup-logout .swal2-icon.swal2-error [class^='swal2-x-mark-line'] {
+      background-color: #f43f5e !important;
     }
 
     @media (max-width: 576px) {
@@ -469,7 +495,6 @@
 
           <label class="form-label small text-secondary mb-2">Masukkan PIN Admin (6 Angka)</label>
           
-          <!-- Indikator 6 Titik PIN -->
           <div class="pin-dots" id="pinDotsGroup">
             <div class="pin-dot"></div>
             <div class="pin-dot"></div>
@@ -479,7 +504,6 @@
             <div class="pin-dot"></div>
           </div>
 
-          <!-- Keypad Angka Layar Sentuh -->
           <div class="pin-keypad">
             <button type="button" class="keypad-btn" onclick="pressPin('1')">1</button>
             <button type="button" class="keypad-btn" onclick="pressPin('2')">2</button>
@@ -532,7 +556,6 @@
       });
     }
 
-    // Logika Keypad PIN
     function pressPin(digit) {
       if (currentPin.length < 6) {
         currentPin += digit;
@@ -569,7 +592,6 @@
       });
     }
 
-    // Dukungan Keyboard Fisik untuk Modal Login PIN
     document.addEventListener('keydown', function(e) {
       const modalAuth = document.getElementById('modalAuth');
       if (modalAuth && modalAuth.classList.contains('show')) {
@@ -649,7 +671,6 @@
 
     function prosesLogin() {
       const uEl = document.getElementById('userInput');
-      // Konversi input username ke huruf kecil (Case-Insensitive)
       const u = uEl.value.trim().toLowerCase();
       const p = currentPin;
 
@@ -991,3 +1012,4 @@
   </script>
 </body>
 </html>
+
