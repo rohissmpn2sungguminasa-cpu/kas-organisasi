@@ -9,13 +9,13 @@
 
   "icons": [
     {
-      "src": "https://github.com/rohissmpn2sungguminasa-cpu/kas-organisasi/blob/d4255a96ad6f523b9895681e9dd6328ed0953bd0/LogoRohis.png",
+      "src": "https://github.com/rohissmpn2sungguminasa-cpu/kas-organisasi/blob/971b0ae8b1c173e687ed53e2b81a6c80997f36ec/launchericon-512x512.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "https://github.com/rohissmpn2sungguminasa-cpu/kas-organisasi/blob/d4255a96ad6f523b9895681e9dd6328ed0953bd0/LogoRohis.png",
+      "src": "https://github.com/rohissmpn2sungguminasa-cpu/kas-organisasi/blob/971b0ae8b1c173e687ed53e2b81a6c80997f36ec/launchericon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
