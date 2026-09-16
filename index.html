@@ -649,7 +649,8 @@
 
     function prosesLogin() {
       const uEl = document.getElementById('userInput');
-      const u = uEl.value.trim();
+      // Konversi input username ke huruf kecil (Case-Insensitive)
+      const u = uEl.value.trim().toLowerCase();
       const p = currentPin;
 
       let hasError = false;
