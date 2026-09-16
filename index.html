@@ -3,7 +3,13 @@
 <head>
   <link rel="manifest" href="/manifest.json">
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  
+  <!-- Meta Tag Fullscreen & Status Bar -->
+  <meta name="theme-color" content="#090d16">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
   <title>Pencatatan Keuangan Organisasi</title>
   
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -31,6 +37,12 @@
       font-family: 'Outfit', -apple-system, sans-serif;
       color: #f8fafc;
       font-size: 0.88rem;
+      
+      /* Safe Area Inset untuk PWA Fullscreen */
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
     }
 
     .glass-card {
@@ -251,7 +263,6 @@
       color: #ffffff !important;
     }
 
-    /* Modifikasi Alert Logout (Background Gelap & Logo Merah) */
     .swal2-popup-logout {
       background-color: #1e293b !important;
       color: #f8fafc !important;
@@ -518,7 +529,6 @@
       inisiatorEnterUsername();
     });
 
-    // Cek sesi login tersimpan di localStorage
     function cekSesiLogin() {
       const savedUser = localStorage.getItem('kas_admin_user');
       const savedPin = localStorage.getItem('kas_admin_pin');
@@ -537,14 +547,13 @@
       document.getElementById('secForm').classList.remove('d-none');
     }
 
-    // Menutup keyboard saat ditekan Enter pada input Username
     function inisiatorEnterUsername() {
       const userInput = document.getElementById('userInput');
       if (userInput) {
         userInput.addEventListener('keydown', function(e) {
           if (e.key === 'Enter') {
             e.preventDefault();
-            userInput.blur(); // Menutup keyboard HP
+            userInput.blur();
           }
         });
       }
@@ -656,7 +665,6 @@
 
     function toggleAuthModal() {
       if (activeUsername) {
-        // Logout & Hapus dari localStorage
         activeUsername = null;
         activePin = null;
         localStorage.removeItem('kas_admin_user');
@@ -724,7 +732,6 @@
           activeUsername = u;
           activePin = p;
 
-          // Simpan sesi login ke localStorage
           localStorage.setItem('kas_admin_user', u);
           localStorage.setItem('kas_admin_pin', p);
 
