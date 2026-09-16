@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
-<link rel="manifest" href="/manifest.json">
+<head>
+  <link rel="manifest" href="/manifest.json">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>Pencatatan Keuangan Organisasi</title>
@@ -132,6 +133,17 @@
       box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.35) !important;
     }
 
+    /* Animasi Shake untuk Input Error */
+    .shake {
+      animation: shakeAnim 0.4s ease-in-out;
+    }
+
+    @keyframes shakeAnim {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+
     .table-dark-custom {
       color: #cbd5e1;
       background-color: transparent;
@@ -176,6 +188,18 @@
       border-radius: 16px !important;
     }
     .swal2-popup-dark .swal2-title {
+      color: #ffffff !important;
+    }
+
+    /* Modifikasi Khusus Alert Logout Merah */
+    .swal2-popup-logout {
+      background-color: #881337 !important;
+      color: #ffffff !important;
+      border: 1px solid #f43f5e !important;
+      border-radius: 16px !important;
+    }
+    .swal2-popup-logout .swal2-title,
+    .swal2-popup-logout .swal2-html-container {
       color: #ffffff !important;
     }
 
@@ -302,13 +326,13 @@
           </div>
 
           <div class="col-12 col-md-6">
-            <label class="form-label small text-secondary mb-1">Keterangan</label>
-            <input type="text" id="keterangan" class="form-control nav-enter" placeholder="Detail catatan transaksi">
+            <label class="form-label small text-secondary mb-1">Keterangan *</label>
+            <input type="text" id="keterangan" class="form-control nav-enter" placeholder="Detail catatan transaksi" oninput="hapusTandaEror(this)" required>
           </div>
 
           <div class="col-12 col-md-6">
-            <label class="form-label small text-secondary mb-1">Upload File Nota (Opsional)</label>
-            <input type="file" id="fotoNota" class="form-control nav-enter" accept="image/*,application/pdf">
+            <label class="form-label small text-secondary mb-1">Upload File Nota *</label>
+            <input type="file" id="fotoNota" class="form-control nav-enter" accept="image/*,application/pdf" onchange="hapusTandaEror(this)" required>
           </div>
         </div>
 
@@ -375,12 +399,12 @@
         </div>
         <div class="modal-body">
           <div class="mb-2">
-            <label class="form-label small text-secondary mb-1">Username</label>
+            <label class="form-label small text-secondary mb-1">Username *</label>
             <input type="text" id="userInput" class="form-control nav-login" placeholder="Username" oninput="hapusTandaEror(this)">
           </div>
           <div class="mb-3">
-            <label class="form-label small text-secondary mb-1">PIN Admin</label>
-            <input type="password" id="pinInput" class="form-control nav-login" placeholder="******" oninput="hapusTandaEror(this)">
+            <label class="form-label small text-secondary mb-1">PIN Admin (6 Angka) *</label>
+            <input type="password" id="pinInput" class="form-control nav-login" placeholder="******" maxlength="6" inputmode="numeric" oninput="validasiPinAngka(this); hapusTandaEror(this)">
           </div>
           <button type="button" class="btn btn-primary w-100 fw-semibold py-2" style="background: #6366f1; border:none; border-radius: 10px;" onclick="prosesLogin()">
             Masuk
@@ -437,10 +461,24 @@
       });
     }
 
+    function validasiPinAngka(el) {
+      el.value = el.value.replace(/\D/g, '');
+    }
+
     function hapusTandaEror(el) {
       if (el.classList.contains('is-invalid')) {
         el.classList.remove('is-invalid');
       }
+      if (el.classList.contains('shake')) {
+        el.classList.remove('shake');
+      }
+    }
+
+    function berikanEfekError(el) {
+      el.classList.add('is-invalid');
+      el.classList.remove('shake');
+      void el.offsetWidth; // Trigger reflow animasi
+      el.classList.add('shake');
     }
 
     function formatRupiahInput(el) {
@@ -460,13 +498,15 @@
         document.getElementById('statusLogin').innerHTML = `<i class="fa-solid fa-user me-1"></i>Tamu`;
         document.getElementById('btnAuth').innerHTML = `<i class="fa-solid fa-right-to-bracket me-1"></i>Login Admin`;
         document.getElementById('secForm').classList.add('d-none');
+        
+        // Popup Logout Merah sesuai permintaan
         Swal.fire({ 
-          icon: 'info', 
+          icon: 'error', 
           title: 'Logout', 
           text: 'Anda telah keluar dari mode Admin.', 
           timer: 1500, 
           showConfirmButton: false,
-          customClass: { popup: 'swal2-popup-dark' }
+          customClass: { popup: 'swal2-popup-logout' }
         });
       } else {
         const modalEl = document.getElementById('modalAuth');
@@ -483,12 +523,11 @@
       const p = pEl.value.trim();
 
       let hasError = false;
-      if (!u) { uEl.classList.add('is-invalid'); hasError = true; }
-      if (!p) { pEl.classList.add('is-invalid'); hasError = true; }
+      if (!u) { berikanEfekError(uEl); hasError = true; }
+      if (!p || p.length !== 6) { berikanEfekError(pEl); hasError = true; }
 
       if (hasError) return;
 
-      // === PENAMBAHAN ANIMASI LOADING LOGIN ===
       Swal.fire({
         title: 'Memverifikasi Admin...',
         text: 'Mohon tunggu sebentar',
@@ -539,8 +578,8 @@
           });
           setTimeout(() => document.getElementById('tanggal').focus(), 500);
         } else {
-          uEl.classList.add('is-invalid');
-          pEl.classList.add('is-invalid');
+          berikanEfekError(uEl);
+          berikanEfekError(pEl);
           Swal.fire({ 
             icon: 'error', 
             title: 'Gagal Login', 
@@ -700,13 +739,18 @@
       const jenisEl = document.getElementById('jenis');
       const katEl = document.getElementById('kategori');
       const jmlEl = document.getElementById('jumlah');
+      const ketEl = document.getElementById('keterangan');
+      const fileInput = document.getElementById('fotoNota');
 
       let hasError = false;
 
-      if (!tglEl.value) { tglEl.classList.add('is-invalid'); hasError = true; }
-      if (!jenisEl.value) { jenisEl.classList.add('is-invalid'); hasError = true; }
-      if (!katEl.value.trim()) { katEl.classList.add('is-invalid'); hasError = true; }
-      if (!jmlEl.value.trim()) { jmlEl.classList.add('is-invalid'); hasError = true; }
+      // Memastikan SEMUA box input wajib diisi
+      if (!tglEl.value) { berikanEfekError(tglEl); hasError = true; }
+      if (!jenisEl.value) { berikanEfekError(jenisEl); hasError = true; }
+      if (!katEl.value.trim()) { berikanEfekError(katEl); hasError = true; }
+      if (!jmlEl.value.trim()) { berikanEfekError(jmlEl); hasError = true; }
+      if (!ketEl.value.trim()) { berikanEfekError(ketEl); hasError = true; }
+      if (!fileInput.files.length) { berikanEfekError(fileInput); hasError = true; }
 
       if (hasError) return;
 
@@ -724,7 +768,6 @@
       btn.disabled = true;
       btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin me-1"></i> Menyimpan...`;
 
-      const fileInput = document.getElementById('fotoNota');
       const file = fileInput.files[0];
       const rawJumlah = jmlEl.value.replace(/\D/g, '');
 
@@ -735,7 +778,7 @@
           jenis: jenisEl.value,
           kategori: katEl.value.trim(),
           jumlah: Number(rawJumlah),
-          keterangan: document.getElementById('keterangan').value.trim(),
+          keterangan: ketEl.value.trim(),
           usernameAdmin: activeUsername,
           pinAdmin: activePin,
           fileData: null,
