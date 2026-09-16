@@ -1,26 +1,3 @@
-Berikut adalah penyesuaian untuk tampilan SweetAlert saat Logout. Warna latar belakangnya disamakan persis dengan modal login (#1e293b), namun ikon tetap berwarna merah untuk menandakan tindakan keluar.
-Perubahan CSS
-Ganti blok .swal2-popup-logout pada bagian <style> di kode HTML Anda dengan CSS berikut:
-/* Modifikasi Alert Logout (Background Gelap & Logo Merah) */
-.swal2-popup-logout {
-  background-color: #1e293b !important;
-  color: #f8fafc !important;
-  border: 1px solid #334155 !important;
-  border-radius: 16px !important;
-}
-.swal2-popup-logout .swal2-title,
-.swal2-popup-logout .swal2-html-container {
-  color: #ffffff !important;
-}
-.swal2-popup-logout .swal2-icon.swal2-error {
-  border-color: #f43f5e !important;
-  color: #f43f5e !important;
-}
-.swal2-popup-logout .swal2-icon.swal2-error [class^='swal2-x-mark-line'] {
-  background-color: #f43f5e !important;
-}
-
-Kode HTML Lengkap yang Sudah Diperbarui
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -1012,4 +989,3 @@ Kode HTML Lengkap yang Sudah Diperbarui
   </script>
 </body>
 </html>
-
