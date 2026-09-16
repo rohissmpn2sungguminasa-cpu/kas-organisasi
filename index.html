@@ -144,6 +144,70 @@
       40%, 80% { transform: translateX(6px); }
     }
 
+    /* Indikator Titik PIN Lockscreen */
+    .pin-dots {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .pin-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid #64748b;
+      background-color: transparent;
+      transition: all 0.2s ease;
+    }
+    .pin-dot.active {
+      background-color: #818cf8;
+      border-color: #818cf8;
+      box-shadow: 0 0 10px rgba(129, 140, 248, 0.6);
+    }
+    .pin-dot.error {
+      background-color: #f43f5e;
+      border-color: #f43f5e;
+      box-shadow: 0 0 10px rgba(244, 63, 94, 0.6);
+    }
+
+    /* Keypad Angka Layar Sentuh */
+    .pin-keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      max-width: 240px;
+      margin: 0 auto;
+    }
+    .keypad-btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      color: #f8fafc;
+      font-size: 1.25rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s ease;
+    }
+    .keypad-btn:active {
+      background: #334155;
+      transform: scale(0.92);
+    }
+    .keypad-btn.action {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+    }
+    .keypad-btn.action:active {
+      color: #f8fafc;
+    }
+
     .table-dark-custom {
       color: #cbd5e1;
       background-color: transparent;
@@ -397,18 +461,39 @@
           <h6 class="modal-title fw-bold text-white"><i class="fa-solid fa-lock text-indigo me-2"></i>Login Admin</h6>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
-        <div class="modal-body">
-          <div class="mb-2">
+        <div class="modal-body text-center pt-3">
+          <div class="mb-3 text-start">
             <label class="form-label small text-secondary mb-1">Username *</label>
-            <input type="text" id="userInput" class="form-control nav-login" placeholder="Username" oninput="hapusTandaEror(this)">
+            <input type="text" id="userInput" class="form-control" placeholder="Username" oninput="hapusTandaEror(this)">
           </div>
-          <div class="mb-3">
-            <label class="form-label small text-secondary mb-1">PIN Admin (6 Angka) *</label>
-            <input type="password" id="pinInput" class="form-control nav-login" placeholder="******" maxlength="6" inputmode="numeric" oninput="validasiPinAngka(this); hapusTandaEror(this)">
+
+          <label class="form-label small text-secondary mb-2">Masukkan PIN Admin (6 Angka)</label>
+          
+          <!-- Indikator 6 Titik PIN -->
+          <div class="pin-dots" id="pinDotsGroup">
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
           </div>
-          <button type="button" class="btn btn-primary w-100 fw-semibold py-2" style="background: #6366f1; border:none; border-radius: 10px;" onclick="prosesLogin()">
-            Masuk
-          </button>
+
+          <!-- Keypad Angka Layar Sentuh -->
+          <div class="pin-keypad">
+            <button type="button" class="keypad-btn" onclick="pressPin('1')">1</button>
+            <button type="button" class="keypad-btn" onclick="pressPin('2')">2</button>
+            <button type="button" class="keypad-btn" onclick="pressPin('3')">3</button>
+            <button type="button" class="keypad-btn" onclick="pressPin('4')">4</button>
+            <button type="button" class="keypad-btn" onclick="pressPin('5')">5</button>
+            <button type="button" class="keypad-btn" onclick="pressPin('6')">6</button>
+            <button type="button" class="keypad-btn" onclick="pressPin('7')">7</button>
+            <button type="button" class="keypad-btn" onclick="pressPin('8')">8</button>
+            <button type="button" class="keypad-btn" onclick="pressPin('9')">9</button>
+            <button type="button" class="keypad-btn action" onclick="clearPin()"><i class="fa-solid fa-xmark"></i></button>
+            <button type="button" class="keypad-btn" onclick="pressPin('0')">0</button>
+            <button type="button" class="keypad-btn action" onclick="backspacePin()"><i class="fa-solid fa-backspace"></i></button>
+          </div>
         </div>
       </div>
     </div>
@@ -422,6 +507,7 @@
     let rawDataTransaksi = [];
     let activeUsername = null;
     let activePin = null;
+    let currentPin = "";
 
     document.addEventListener("DOMContentLoaded", function() {
       document.getElementById('tanggal').value = new Date().toISOString().split('T')[0];
@@ -444,26 +530,60 @@
           }
         });
       });
+    }
 
-      const inputsLogin = Array.from(document.querySelectorAll('#modalAuth .nav-login'));
-      inputsLogin.forEach((element, index) => {
-        element.addEventListener('keydown', function(e) {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            const nextInput = inputsLogin[index + 1];
-            if (nextInput) {
-              nextInput.focus();
-            } else {
-              prosesLogin();
-            }
-          }
-        });
+    // Logika Keypad PIN
+    function pressPin(digit) {
+      if (currentPin.length < 6) {
+        currentPin += digit;
+        updatePinDots();
+        if (currentPin.length === 6) {
+          setTimeout(() => {
+            prosesLogin();
+          }, 150);
+        }
+      }
+    }
+
+    function backspacePin() {
+      if (currentPin.length > 0) {
+        currentPin = currentPin.slice(0, -1);
+        updatePinDots();
+      }
+    }
+
+    function clearPin() {
+      currentPin = "";
+      updatePinDots();
+    }
+
+    function updatePinDots(isError = false) {
+      const dots = document.querySelectorAll('#pinDotsGroup .pin-dot');
+      dots.forEach((dot, index) => {
+        dot.className = "pin-dot";
+        if (isError) {
+          dot.classList.add('error');
+        } else if (index < currentPin.length) {
+          dot.classList.add('active');
+        }
       });
     }
 
-    function validasiPinAngka(el) {
-      el.value = el.value.replace(/\D/g, '');
-    }
+    // Dukungan Keyboard Fisik untuk Modal Login PIN
+    document.addEventListener('keydown', function(e) {
+      const modalAuth = document.getElementById('modalAuth');
+      if (modalAuth && modalAuth.classList.contains('show')) {
+        if (document.activeElement.id === 'userInput') return;
+        
+        if (e.key >= '0' && e.key <= '9') {
+          pressPin(e.key);
+        } else if (e.key === 'Backspace') {
+          backspacePin();
+        } else if (e.key === 'Escape' || e.key === 'Delete') {
+          clearPin();
+        }
+      }
+    });
 
     function hapusTandaEror(el) {
       if (el.classList.contains('is-invalid')) {
@@ -477,8 +597,19 @@
     function berikanEfekError(el) {
       el.classList.add('is-invalid');
       el.classList.remove('shake');
-      void el.offsetWidth; // Trigger reflow animasi
+      void el.offsetWidth;
       el.classList.add('shake');
+    }
+
+    function berikanEfekErrorPin() {
+      const container = document.getElementById('pinDotsGroup');
+      updatePinDots(true);
+      container.classList.remove('shake');
+      void container.offsetWidth;
+      container.classList.add('shake');
+      setTimeout(() => {
+        clearPin();
+      }, 600);
     }
 
     function formatRupiahInput(el) {
@@ -499,7 +630,6 @@
         document.getElementById('btnAuth').innerHTML = `<i class="fa-solid fa-right-to-bracket me-1"></i>Login Admin`;
         document.getElementById('secForm').classList.add('d-none');
         
-        // Popup Logout Merah sesuai permintaan
         Swal.fire({ 
           icon: 'error', 
           title: 'Logout', 
@@ -512,19 +642,19 @@
         const modalEl = document.getElementById('modalAuth');
         const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
         modal.show();
+        clearPin();
         setTimeout(() => document.getElementById('userInput').focus(), 400);
       }
     }
 
     function prosesLogin() {
       const uEl = document.getElementById('userInput');
-      const pEl = document.getElementById('pinInput');
       const u = uEl.value.trim();
-      const p = pEl.value.trim();
+      const p = currentPin;
 
       let hasError = false;
       if (!u) { berikanEfekError(uEl); hasError = true; }
-      if (!p || p.length !== 6) { berikanEfekError(pEl); hasError = true; }
+      if (!p || p.length !== 6) { berikanEfekErrorPin(); hasError = true; }
 
       if (hasError) return;
 
@@ -566,7 +696,7 @@
           if (modal) modal.hide();
 
           uEl.value = '';
-          pEl.value = '';
+          clearPin();
           
           Swal.fire({ 
             icon: 'success', 
@@ -579,7 +709,7 @@
           setTimeout(() => document.getElementById('tanggal').focus(), 500);
         } else {
           berikanEfekError(uEl);
-          berikanEfekError(pEl);
+          berikanEfekErrorPin();
           Swal.fire({ 
             icon: 'error', 
             title: 'Gagal Login', 
@@ -744,7 +874,6 @@
 
       let hasError = false;
 
-      // Memastikan SEMUA box input wajib diisi
       if (!tglEl.value) { berikanEfekError(tglEl); hasError = true; }
       if (!jenisEl.value) { berikanEfekError(jenisEl); hasError = true; }
       if (!katEl.value.trim()) { berikanEfekError(katEl); hasError = true; }
