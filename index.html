@@ -512,9 +512,43 @@
 
     document.addEventListener("DOMContentLoaded", function() {
       document.getElementById('tanggal').value = new Date().toISOString().split('T')[0];
+      cekSesiLogin();
       muatData();
       inisiatorPindahEnter();
+      inisiatorEnterUsername();
     });
+
+    // Cek sesi login tersimpan di localStorage
+    function cekSesiLogin() {
+      const savedUser = localStorage.getItem('kas_admin_user');
+      const savedPin = localStorage.getItem('kas_admin_pin');
+      
+      if (savedUser && savedPin) {
+        activeUsername = savedUser;
+        activePin = savedPin;
+        setTampilanLogin(savedUser);
+      }
+    }
+
+    function setTampilanLogin(username) {
+      document.getElementById('statusLogin').className = "badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-25 px-2 py-1";
+      document.getElementById('statusLogin').innerHTML = `<i class="fa-solid fa-user-check me-1"></i>Admin: ${username}`;
+      document.getElementById('btnAuth').innerHTML = `<i class="fa-solid fa-right-from-bracket me-1"></i>Logout`;
+      document.getElementById('secForm').classList.remove('d-none');
+    }
+
+    // Menutup keyboard saat ditekan Enter pada input Username
+    function inisiatorEnterUsername() {
+      const userInput = document.getElementById('userInput');
+      if (userInput) {
+        userInput.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            userInput.blur(); // Menutup keyboard HP
+          }
+        });
+      }
+    }
 
     function inisiatorPindahEnter() {
       const inputsForm = Array.from(document.querySelectorAll('#formTransaksi .nav-enter'));
@@ -622,8 +656,12 @@
 
     function toggleAuthModal() {
       if (activeUsername) {
+        // Logout & Hapus dari localStorage
         activeUsername = null;
         activePin = null;
+        localStorage.removeItem('kas_admin_user');
+        localStorage.removeItem('kas_admin_pin');
+
         document.getElementById('statusLogin').className = "badge bg-dark text-secondary border border-secondary px-2 py-1";
         document.getElementById('statusLogin').innerHTML = `<i class="fa-solid fa-user me-1"></i>Tamu`;
         document.getElementById('btnAuth').innerHTML = `<i class="fa-solid fa-right-to-bracket me-1"></i>Login Admin`;
@@ -685,10 +723,12 @@
         if (res.success) {
           activeUsername = u;
           activePin = p;
-          document.getElementById('statusLogin').className = "badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-25 px-2 py-1";
-          document.getElementById('statusLogin').innerHTML = `<i class="fa-solid fa-user-check me-1"></i>Admin: ${u}`;
-          document.getElementById('btnAuth').innerHTML = `<i class="fa-solid fa-right-from-bracket me-1"></i>Logout`;
-          document.getElementById('secForm').classList.remove('d-none');
+
+          // Simpan sesi login ke localStorage
+          localStorage.setItem('kas_admin_user', u);
+          localStorage.setItem('kas_admin_pin', p);
+
+          setTampilanLogin(u);
           
           const modalEl = document.getElementById('modalAuth');
           const modal = bootstrap.Modal.getInstance(modalEl);
