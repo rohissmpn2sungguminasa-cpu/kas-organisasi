@@ -2,9 +2,9 @@
   "name": "Kas Keuangan Rohis",
   "short_name": "Kas Rohis",
   "start_url": "/",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "display": "fullscreen",
+  "background_color": "#090d16",
+  "theme_color": "#090d16",
   "orientation": "portrait",
   "icons": [
     {
