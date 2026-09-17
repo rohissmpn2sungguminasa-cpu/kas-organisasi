@@ -1,17 +1,21 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <link rel="manifest" href="/manifest.json">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  
+
+  <link rel="manifest" href="/manifest.json">
+
   <!-- Meta Tag Fullscreen & Status Bar -->
   <meta name="theme-color" content="#090d16">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Kas Rohis">
+  <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
 
   <title>Pencatatan Keuangan Organisasi</title>
-  
+
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -37,7 +41,7 @@
       font-family: 'Outfit', -apple-system, sans-serif;
       color: #f8fafc;
       font-size: 0.88rem;
-      
+
       /* Safe Area Inset untuk PWA Fullscreen */
       padding-top: env(safe-area-inset-top);
       padding-bottom: env(safe-area-inset-bottom);
@@ -104,7 +108,7 @@
     }
 
     input:-webkit-autofill,
-    input:-webkit-autofill:hover, 
+    input:-webkit-autofill:hover,
     input:-webkit-autofill:focus,
     input:-webkit-autofill:active,
     select:-webkit-autofill,
@@ -400,7 +404,7 @@
 
           <div class="col-12 col-md-3">
             <label class="form-label small text-secondary mb-1">Jumlah (Rp) *</label>
-            <input type="text" id="jumlah" class="form-control nav-enter" placeholder="0" onkeyup="formatRupiahInput(this)" oninput="hapusTandaEror(this)" required>
+            <input type="text" id="jumlah" class="form-control nav-enter" inputmode="numeric" placeholder="0" onkeyup="formatRupiahInput(this)" oninput="hapusTandaEror(this)" required>
           </div>
 
           <div class="col-12 col-md-6">
@@ -482,7 +486,7 @@
           </div>
 
           <label class="form-label small text-secondary mb-2">Masukkan PIN Admin (6 Angka)</label>
-          
+
           <div class="pin-dots" id="pinDotsGroup">
             <div class="pin-dot"></div>
             <div class="pin-dot"></div>
@@ -513,6 +517,21 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
+  <!-- ===== Registrasi Service Worker (wajib agar install penuh / tanpa bar URL) ===== -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('/sw.js', { scope: '/' })
+          .then(function (reg) {
+            console.log('Service Worker aktif pada scope:', reg.scope);
+          })
+          .catch(function (err) {
+            console.warn('Service Worker gagal didaftarkan:', err);
+          });
+      });
+    }
+  </script>
+
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxGzXDHtxoeuL_QZqE--XAzRdTZDB_MHSOI-LZpaws0uzvt9neNHl1hkgri0g40u1l5Xg/exec";
 
@@ -532,7 +551,7 @@
     function cekSesiLogin() {
       const savedUser = localStorage.getItem('kas_admin_user');
       const savedPin = localStorage.getItem('kas_admin_pin');
-      
+
       if (savedUser && savedPin) {
         activeUsername = savedUser;
         activePin = savedPin;
@@ -616,7 +635,7 @@
       const modalAuth = document.getElementById('modalAuth');
       if (modalAuth && modalAuth.classList.contains('show')) {
         if (document.activeElement.id === 'userInput') return;
-        
+
         if (e.key >= '0' && e.key <= '9') {
           pressPin(e.key);
         } else if (e.key === 'Backspace') {
@@ -674,12 +693,12 @@
         document.getElementById('statusLogin').innerHTML = `<i class="fa-solid fa-user me-1"></i>Tamu`;
         document.getElementById('btnAuth').innerHTML = `<i class="fa-solid fa-right-to-bracket me-1"></i>Login Admin`;
         document.getElementById('secForm').classList.add('d-none');
-        
-        Swal.fire({ 
-          icon: 'error', 
-          title: 'Logout', 
-          text: 'Anda telah keluar dari mode Admin.', 
-          timer: 1500, 
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Logout',
+          text: 'Anda telah keluar dari mode Admin.',
+          timer: 1500,
           showConfirmButton: false,
           customClass: { popup: 'swal2-popup-logout' }
         });
@@ -736,19 +755,19 @@
           localStorage.setItem('kas_admin_pin', p);
 
           setTampilanLogin(u);
-          
+
           const modalEl = document.getElementById('modalAuth');
           const modal = bootstrap.Modal.getInstance(modalEl);
           if (modal) modal.hide();
 
           uEl.value = '';
           clearPin();
-          
-          Swal.fire({ 
-            icon: 'success', 
-            title: 'Berhasil Login', 
-            text: 'Selamat datang kembali, Admin!', 
-            timer: 1500, 
+
+          Swal.fire({
+            icon: 'success',
+            title: 'Berhasil Login',
+            text: 'Selamat datang kembali, Admin!',
+            timer: 1500,
             showConfirmButton: false,
             customClass: { popup: 'swal2-popup-dark' }
           });
@@ -756,9 +775,9 @@
         } else {
           berikanEfekError(uEl);
           berikanEfekErrorPin();
-          Swal.fire({ 
-            icon: 'error', 
-            title: 'Gagal Login', 
+          Swal.fire({
+            icon: 'error',
+            title: 'Gagal Login',
             text: res.message,
             customClass: { popup: 'swal2-popup-dark' }
           });
@@ -803,7 +822,7 @@
         let matchPeriode = true;
         let rawTgl = row[1];
         let tgl;
-        
+
         if (typeof rawTgl === 'string' && rawTgl.includes('T')) {
           tgl = new Date(rawTgl);
         } else if (typeof rawTgl === 'string' && rawTgl.includes('-')) {
@@ -859,14 +878,14 @@
         const isPemasukan = row[2] === 'Pemasukan';
         const badgeClass = isPemasukan ? 'badge-masuk' : 'badge-keluar';
         const nominalFormatted = formatRupiah(row[4] || 0);
-        
+
         let tglDisplay = row[1];
         if (tglDisplay && typeof tglDisplay === 'string' && tglDisplay.includes('T')) {
           tglDisplay = tglDisplay.split('T')[0];
         }
 
-        const linkNota = (row[6] && row[6] !== '-') 
-          ? `<a href="${row[6]}" target="_blank" class="btn btn-sm btn-outline-light py-0 px-2" style="font-size:0.75rem;"><i class="fa-solid fa-receipt me-1"></i>Nota</a>` 
+        const linkNota = (row[6] && row[6] !== '-')
+          ? `<a href="${row[6]}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-light py-0 px-2" style="font-size:0.75rem;"><i class="fa-solid fa-receipt me-1"></i>Nota</a>`
           : '-';
 
         const tr = document.createElement('tr');
@@ -939,6 +958,16 @@
         return;
       }
 
+      if (!navigator.onLine) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Tidak Ada Koneksi',
+          text: 'Transaksi butuh internet. Sambungkan dulu, lalu simpan kembali.',
+          customClass: { popup: 'swal2-popup-dark' }
+        });
+        return;
+      }
+
       const btn = document.getElementById('btnSimpan');
       btn.disabled = true;
       btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin me-1"></i> Menyimpan...`;
@@ -972,16 +1001,16 @@
         .then(resMsg => {
           btn.disabled = false;
           btn.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i>Simpan Transaksi`;
-          
+
           if (resMsg.success) {
             document.getElementById('formTransaksi').reset();
             document.getElementById('tanggal').value = new Date().toISOString().split('T')[0];
-            
-            Swal.fire({ 
-              icon: 'success', 
-              title: 'Berhasil!', 
-              text: resMsg.message, 
-              timer: 1500, 
+
+            Swal.fire({
+              icon: 'success',
+              title: 'Berhasil!',
+              text: resMsg.message,
+              timer: 1500,
               showConfirmButton: false,
               customClass: { popup: 'swal2-popup-dark' }
             });
