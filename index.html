@@ -724,9 +724,6 @@
       return "Rp " + Number(angka).toLocaleString('id-ID');
     }
 
-    // ===== Kompresi gambar nota sebelum diupload =====
-    // Hanya berlaku untuk file bertipe image/*; PDF dilewati apa adanya
-    // karena kompresi PDF butuh library tambahan.
     function compressImage(file, maxDimensi = KOMPRES_MAX_DIMENSI, kualitas = KOMPRES_KUALITAS) {
       return new Promise((resolve, reject) => {
         const readerAwal = new FileReader();
