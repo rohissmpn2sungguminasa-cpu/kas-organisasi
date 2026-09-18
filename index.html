@@ -415,6 +415,7 @@
           <div class="col-12 col-md-6">
             <label class="form-label small text-secondary mb-1">Upload File Nota *</label>
             <input type="file" id="fotoNota" class="form-control nav-enter" accept="image/*,application/pdf" onchange="hapusTandaEror(this)" required>
+            <small class="text-secondary" style="font-size: 0.7rem;">Foto akan dikompres otomatis sebelum diupload agar hemat penyimpanan.</small>
           </div>
         </div>
 
@@ -534,6 +535,10 @@
 
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxGzXDHtxoeuL_QZqE--XAzRdTZDB_MHSOI-LZpaws0uzvt9neNHl1hkgri0g40u1l5Xg/exec";
+
+    // Pengaturan kompresi gambar nota
+    const KOMPRES_MAX_DIMENSI = 1280; // px, sisi terpanjang
+    const KOMPRES_KUALITAS = 0.7;     // 0 - 1 (kualitas JPEG)
 
     let rawDataTransaksi = [];
     let activeUsername = null;
@@ -680,6 +685,59 @@
 
     function formatRupiah(angka) {
       return "Rp " + Number(angka).toLocaleString('id-ID');
+    }
+
+    // ===== Kompresi gambar nota sebelum diupload =====
+    // Hanya berlaku untuk file bertipe image/*; PDF dilewati apa adanya
+    // karena kompresi PDF butuh library tambahan.
+    function compressImage(file, maxDimensi = KOMPRES_MAX_DIMENSI, kualitas = KOMPRES_KUALITAS) {
+      return new Promise((resolve, reject) => {
+        const readerAwal = new FileReader();
+        readerAwal.onload = function(e) {
+          const img = new Image();
+          img.onload = function() {
+            let { width, height } = img;
+
+            if (width > maxDimensi || height > maxDimensi) {
+              if (width > height) {
+                height = Math.round(height * (maxDimensi / width));
+                width = maxDimensi;
+              } else {
+                width = Math.round(width * (maxDimensi / height));
+                height = maxDimensi;
+              }
+            }
+
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+
+            // Isi background putih dulu (mencegah PNG transparan jadi hitam saat jadi JPEG)
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, width, height);
+            ctx.drawImage(img, 0, 0, width, height);
+
+            canvas.toBlob(function(blob) {
+              if (!blob) {
+                reject(new Error('Gagal mengompres gambar'));
+                return;
+              }
+              const namaBaru = file.name.replace(/\.[^.]+$/, '') + '.jpg';
+              const fileHasil = new File([blob], namaBaru, { type: 'image/jpeg' });
+              resolve(fileHasil);
+            }, 'image/jpeg', kualitas);
+          };
+          img.onerror = function() {
+            reject(new Error('Gagal membaca gambar'));
+          };
+          img.src = e.target.result;
+        };
+        readerAwal.onerror = function() {
+          reject(new Error('Gagal membaca file'));
+        };
+        readerAwal.readAsDataURL(file);
+      });
     }
 
     function toggleAuthModal() {
@@ -991,6 +1049,17 @@
         }
       };
 
+      const gagalSimpan = (pesan) => {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i>Simpan Transaksi`;
+        Swal.fire({
+          icon: 'error',
+          title: 'Gagal',
+          text: pesan,
+          customClass: { popup: 'swal2-popup-dark' }
+        });
+      };
+
       const prosesKirim = (dataPayload) => {
         fetch(SCRIPT_URL, {
           method: "POST",
@@ -1025,39 +1094,47 @@
             });
           }
         })
-        .catch(err => {
-          btn.disabled = false;
-          btn.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i>Simpan Transaksi`;
-          Swal.fire({
-            icon: 'error',
-            title: 'Gagal',
-            text: err.message,
-            customClass: { popup: 'swal2-popup-dark' }
-          });
-        });
+        .catch(err => gagalSimpan(err.message));
       };
 
       if (file) {
         if (file.size > 5 * 1024 * 1024) {
-          btn.disabled = false;
-          btn.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i>Simpan Transaksi`;
-          Swal.fire({
-            icon: 'warning',
-            title: 'File Terlalu Besar',
-            text: 'Maksimal ukuran file nota 5MB.',
-            customClass: { popup: 'swal2-popup-dark' }
-          });
+          gagalSimpan('Maksimal ukuran file nota 5MB.');
           return;
         }
 
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-          payload.data.fileData = evt.target.result;
-          payload.data.fileName = file.name;
-          payload.data.fileType = file.type;
-          prosesKirim(payload);
-        };
-        reader.readAsDataURL(file);
+        const isGambar = file.type.startsWith('image/');
+        const prosesFile = isGambar ? compressImage(file) : Promise.resolve(file);
+
+        prosesFile
+          .then(fileFinal => {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+              payload.data.fileData = evt.target.result;
+              payload.data.fileName = fileFinal.name;
+              payload.data.fileType = fileFinal.type;
+              prosesKirim(payload);
+            };
+            reader.onerror = function() {
+              gagalSimpan('Gagal membaca file nota.');
+            };
+            reader.readAsDataURL(fileFinal);
+          })
+          .catch(err => {
+            console.warn('Kompresi gagal, kirim file asli:', err);
+            // Fallback: kalau kompresi gagal, tetap kirim file asli apa adanya
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+              payload.data.fileData = evt.target.result;
+              payload.data.fileName = file.name;
+              payload.data.fileType = file.type;
+              prosesKirim(payload);
+            };
+            reader.onerror = function() {
+              gagalSimpan('Gagal membaca file nota.');
+            };
+            reader.readAsDataURL(file);
+          });
       } else {
         prosesKirim(payload);
       }
