@@ -418,6 +418,8 @@
           <div class="col-12 col-md-6">
             <label class="form-label small text-secondary mb-1">Upload File Nota *</label>
             <input type="file" id="fotoNota" class="form-control nav-enter" accept="image/*,application/pdf" onchange="hapusTandaEror(this)" required>
+            <small class="text-secondary" style="font-size: 0.7rem;">Foto akan dikompres otomatis sebelum diupload agar hemat penyimpanan. Jika pakai iPhone, aktifkan format "Paling Kompatibel" di Pengaturan &gt; Kamera &gt; Format agar foto tersimpan sebagai JPEG (bukan HEIC) supaya kompresi berjalan.</small>
+          </div>
         </div>
 
         <div class="mt-3 text-end">
@@ -722,6 +724,9 @@
       return "Rp " + Number(angka).toLocaleString('id-ID');
     }
 
+    // ===== Kompresi gambar nota sebelum diupload =====
+    // Hanya berlaku untuk file bertipe image/*; PDF dilewati apa adanya
+    // karena kompresi PDF butuh library tambahan.
     function compressImage(file, maxDimensi = KOMPRES_MAX_DIMENSI, kualitas = KOMPRES_KUALITAS) {
       return new Promise((resolve, reject) => {
         const readerAwal = new FileReader();
