@@ -591,12 +591,25 @@
       }
     }
 
+    // Hanya username persis "admin" atau "pembina" yang boleh melihat & memakai fitur Tambah Akun.
+    // (Server tetap memvalidasi ulang; ini cuma menyembunyikan tombolnya di tampilan.)
+    function isBolehTambahAkun(username) {
+      var u = String(username || "").trim().toLowerCase();
+      return u === "admin" || u === "pembina";
+    }
+
     function setTampilanLogin(username) {
       document.getElementById('statusLogin').className = "badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-25 px-2 py-1";
       document.getElementById('statusLogin').innerHTML = `<i class="fa-solid fa-user-check me-1"></i>Admin: ${username}`;
       document.getElementById('btnAuth').innerHTML = `<i class="fa-solid fa-right-from-bracket me-1"></i>Logout`;
       document.getElementById('secForm').classList.remove('d-none');
-      document.getElementById('btnTambahAkun').classList.remove('d-none');
+
+      const btnAkun = document.getElementById('btnTambahAkun');
+      if (isBolehTambahAkun(username)) {
+        btnAkun.classList.remove('d-none');
+      } else {
+        btnAkun.classList.add('d-none');
+      }
     }
 
     function inisiatorEnterUsername() {
@@ -887,6 +900,16 @@
           icon: 'warning',
           title: 'Akses Ditolak',
           text: 'Silakan login Admin terlebih dahulu.',
+          customClass: { popup: 'swal2-popup-dark' }
+        });
+        return;
+      }
+
+      if (!isBolehTambahAkun(activeUsername)) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Akses Ditolak',
+          text: 'Akun Anda tidak memiliki izin untuk menambah akun baru.',
           customClass: { popup: 'swal2-popup-dark' }
         });
         return;
