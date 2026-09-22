@@ -317,6 +317,9 @@
         <button id="btnTambahAkun" class="btn btn-sm btn-outline-light px-3 fw-semibold d-none" onclick="bukaModalTambahAkun()" style="border-radius: 10px;">
           <i class="fa-solid fa-user-plus me-1"></i>Akun
         </button>
+        <button id="btnUbahPin" class="btn btn-sm btn-outline-light px-3 fw-semibold d-none" onclick="bukaModalUbahPin()" style="border-radius: 10px;">
+          <i class="fa-solid fa-key me-1"></i>Ubah PIN
+        </button>
         <button id="btnAuth" class="btn btn-sm btn-outline-light px-3 fw-semibold" onclick="toggleAuthModal()" style="border-radius: 10px;">
           <i class="fa-solid fa-right-to-bracket me-1"></i>Login Admin
         </button>
@@ -521,7 +524,7 @@
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content glass-card border-0" style="background: #1e293b;">
         <div class="modal-header border-bottom border-secondary border-opacity-25 pb-2">
-          <h6 class="modal-title fw-bold text-white"><i class="fa-solid fa-user-plus text-indigo me-2"></i>Tambah Akun Admin / Pembina</h6>
+          <h6 class="modal-title fw-bold text-white"><i class="fa-solid fa-user-plus text-indigo me-2"></i>Kelola Akun</h6>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body pt-3">
@@ -536,6 +539,43 @@
             </div>
             <button type="submit" id="btnSimpanAkun" class="btn btn-primary w-100 fw-semibold" style="border-radius: 10px; background: #6366f1; border:none;">
               <i class="fa-solid fa-floppy-disk me-1"></i>Buat Akun
+            </button>
+          </form>
+
+          <hr class="border-secondary border-opacity-25 my-4">
+
+          <h6 class="fw-bold text-secondary small mb-2"><i class="fa-solid fa-list me-1"></i>Daftar Akun Terdaftar</h6>
+          <div id="daftarAkunList" class="small">
+            <div class="text-secondary py-2"><i class="fa-solid fa-circle-notch fa-spin me-1"></i>Memuat daftar akun...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modalUbahPin" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content glass-card border-0" style="background: #1e293b;">
+        <div class="modal-header border-bottom border-secondary border-opacity-25 pb-2">
+          <h6 class="modal-title fw-bold text-white"><i class="fa-solid fa-key text-indigo me-2"></i>Ubah PIN</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body pt-3">
+          <form id="formUbahPin" onsubmit="handleUbahPin(event)" novalidate>
+            <div class="mb-3">
+              <label class="form-label small text-secondary mb-1">PIN Lama (6 Angka) *</label>
+              <input type="text" id="pinLama" class="form-control" inputmode="numeric" maxlength="6" placeholder="PIN saat ini" oninput="hapusTandaEror(this)" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small text-secondary mb-1">PIN Baru (6 Angka) *</label>
+              <input type="text" id="pinBaru" class="form-control" inputmode="numeric" maxlength="6" placeholder="PIN baru" oninput="hapusTandaEror(this)" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small text-secondary mb-1">Konfirmasi PIN Baru *</label>
+              <input type="text" id="pinBaruKonfirmasi" class="form-control" inputmode="numeric" maxlength="6" placeholder="Ulangi PIN baru" oninput="hapusTandaEror(this)" required>
+            </div>
+            <button type="submit" id="btnSimpanPin" class="btn btn-primary w-100 fw-semibold" style="border-radius: 10px; background: #6366f1; border:none;">
+              <i class="fa-solid fa-floppy-disk me-1"></i>Simpan PIN Baru
             </button>
           </form>
         </div>
@@ -610,6 +650,8 @@
       } else {
         btnAkun.classList.add('d-none');
       }
+
+      document.getElementById('btnUbahPin').classList.remove('d-none');
     }
 
     function inisiatorEnterUsername() {
@@ -793,6 +835,7 @@
         document.getElementById('btnAuth').innerHTML = `<i class="fa-solid fa-right-to-bracket me-1"></i>Login Admin`;
         document.getElementById('secForm').classList.add('d-none');
         document.getElementById('btnTambahAkun').classList.add('d-none');
+        document.getElementById('btnUbahPin').classList.add('d-none');
 
         Swal.fire({
           icon: 'error',
@@ -918,6 +961,54 @@
       const modalEl = document.getElementById('modalTambahAkun');
       const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
       modal.show();
+      muatDaftarAkun();
+    }
+
+    function muatDaftarAkun() {
+      const container = document.getElementById('daftarAkunList');
+      container.innerHTML = `<div class="text-secondary py-2"><i class="fa-solid fa-circle-notch fa-spin me-1"></i>Memuat daftar akun...</div>`;
+
+      const payload = {
+        action: "daftarAkun",
+        data: {
+          requesterUsername: activeUsername,
+          requesterPin: activePin
+        }
+      };
+
+      fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(result => {
+        if (!result.success) {
+          container.innerHTML = `<div class="text-danger py-2">${result.message}</div>`;
+          return;
+        }
+        if (!result.data || result.data.length === 0) {
+          container.innerHTML = `<div class="text-secondary py-2">Belum ada akun terdaftar.</div>`;
+          return;
+        }
+
+        let html = `<div class="table-responsive"><table class="table table-dark-custom table-sm align-middle mb-0">
+          <thead><tr class="small"><th>Username</th><th>PIN</th><th>Dibuat Oleh</th></tr></thead><tbody>`;
+
+        result.data.forEach(function (akun) {
+          html += `<tr>
+            <td class="text-white">${akun.username}</td>
+            <td class="fw-bold" style="color:#818cf8;">${akun.pin}</td>
+            <td class="text-secondary">${akun.dibuatOleh || '-'}</td>
+          </tr>`;
+        });
+
+        html += `</tbody></table></div>`;
+        container.innerHTML = html;
+      })
+      .catch(function (err) {
+        container.innerHTML = `<div class="text-danger py-2">Gagal memuat daftar akun: ${err.message}</div>`;
+      });
     }
 
     function handleTambahAkun(e) {
@@ -994,6 +1085,128 @@
       .catch(err => {
         btn.disabled = false;
         btn.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i>Buat Akun`;
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Terjadi kesalahan koneksi: ' + err.message,
+          customClass: { popup: 'swal2-popup-dark' }
+        });
+      });
+    }
+
+    function bukaModalUbahPin() {
+      if (!activeUsername || !activePin) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Akses Ditolak',
+          text: 'Silakan login terlebih dahulu.',
+          customClass: { popup: 'swal2-popup-dark' }
+        });
+        return;
+      }
+      document.getElementById('formUbahPin').reset();
+      const modalEl = document.getElementById('modalUbahPin');
+      const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+      modal.show();
+    }
+
+    function handleUbahPin(e) {
+      e.preventDefault();
+
+      const pinLamaEl = document.getElementById('pinLama');
+      const pinBaruEl = document.getElementById('pinBaru');
+      const pinKonfirmasiEl = document.getElementById('pinBaruKonfirmasi');
+
+      const pinLama = pinLamaEl.value.trim();
+      const pinBaru = pinBaruEl.value.trim();
+      const pinKonfirmasi = pinKonfirmasiEl.value.trim();
+
+      let hasError = false;
+      if (!/^\d{6}$/.test(pinLama)) { berikanEfekError(pinLamaEl); hasError = true; }
+      if (!/^\d{6}$/.test(pinBaru)) { berikanEfekError(pinBaruEl); hasError = true; }
+      if (pinBaru !== pinKonfirmasi) { berikanEfekError(pinKonfirmasiEl); hasError = true; }
+
+      if (hasError) {
+        if (pinBaru !== pinKonfirmasi && /^\d{6}$/.test(pinBaru)) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'PIN Tidak Cocok',
+            text: 'Konfirmasi PIN baru tidak sama dengan PIN baru.',
+            customClass: { popup: 'swal2-popup-dark' }
+          });
+        } else {
+          Swal.fire({
+            icon: 'warning',
+            title: 'PIN Tidak Valid',
+            text: 'Semua PIN harus terdiri dari 6 angka.',
+            customClass: { popup: 'swal2-popup-dark' }
+          });
+        }
+        return;
+      }
+
+      if (pinBaru === pinLama) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'PIN Sama',
+          text: 'PIN baru tidak boleh sama dengan PIN lama.',
+          customClass: { popup: 'swal2-popup-dark' }
+        });
+        return;
+      }
+
+      const btn = document.getElementById('btnSimpanPin');
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin me-1"></i> Menyimpan...`;
+
+      const payload = {
+        action: "ubahPin",
+        data: {
+          username: activeUsername,
+          pinLama: pinLama,
+          pinBaru: pinBaru
+        }
+      };
+
+      fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(res => {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i>Simpan PIN Baru`;
+
+        if (res.success) {
+          // Perbarui sesi lokal supaya tidak perlu login ulang
+          activePin = pinBaru;
+          localStorage.setItem('kas_admin_pin', pinBaru);
+
+          const modalEl = document.getElementById('modalUbahPin');
+          const modal = bootstrap.Modal.getInstance(modalEl);
+          if (modal) modal.hide();
+
+          Swal.fire({
+            icon: 'success',
+            title: 'Berhasil!',
+            text: res.message,
+            timer: 1800,
+            showConfirmButton: false,
+            customClass: { popup: 'swal2-popup-dark' }
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Gagal',
+            text: res.message,
+            customClass: { popup: 'swal2-popup-dark' }
+          });
+        }
+      })
+      .catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i>Simpan PIN Baru`;
         Swal.fire({
           icon: 'error',
           title: 'Error',
