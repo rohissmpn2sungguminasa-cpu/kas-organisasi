@@ -546,7 +546,9 @@
 
           <h6 class="fw-bold text-secondary small mb-2"><i class="fa-solid fa-list me-1"></i>Daftar Akun Terdaftar</h6>
           <div id="daftarAkunList" class="small">
-            <div class="text-secondary py-2"><i class="fa-solid fa-circle-notch fa-spin me-1"></i>Memuat daftar akun...</div>
+            <button type="button" class="btn btn-sm btn-outline-light" onclick="muatDaftarAkun()">
+              <i class="fa-solid fa-eye me-1"></i>Tampilkan Daftar Akun
+            </button>
           </div>
         </div>
       </div>
@@ -958,10 +960,16 @@
         return;
       }
       document.getElementById('formTambahAkun').reset();
+
+      // Reset daftar akun ke kondisi tersembunyi setiap kali modal dibuka ulang
+      document.getElementById('daftarAkunList').innerHTML = `
+        <button type="button" class="btn btn-sm btn-outline-light" onclick="muatDaftarAkun()">
+          <i class="fa-solid fa-eye me-1"></i>Tampilkan Daftar Akun
+        </button>`;
+
       const modalEl = document.getElementById('modalTambahAkun');
       const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
       modal.show();
-      muatDaftarAkun();
     }
 
     function muatDaftarAkun() {
@@ -998,7 +1006,12 @@
         result.data.forEach(function (akun) {
           html += `<tr>
             <td class="text-white">${akun.username}</td>
-            <td class="fw-bold" style="color:#818cf8;">${akun.pin}</td>
+            <td class="fw-bold" style="color:#818cf8;">
+              <span class="pin-tersembunyi" data-pin="${akun.pin}">••••••</span>
+              <button type="button" class="btn btn-sm btn-outline-light py-0 px-2 ms-1" onclick="togglePin(this)" title="Lihat PIN">
+                <i class="fa-solid fa-eye"></i>
+              </button>
+            </td>
             <td class="text-secondary">${akun.dibuatOleh || '-'}</td>
           </tr>`;
         });
@@ -1009,6 +1022,22 @@
       .catch(function (err) {
         container.innerHTML = `<div class="text-danger py-2">Gagal memuat daftar akun: ${err.message}</div>`;
       });
+    }
+
+    function togglePin(btn) {
+      const span = btn.previousElementSibling;
+      const icon = btn.querySelector('i');
+      const sedangTersembunyi = span.textContent === '••••••';
+
+      if (sedangTersembunyi) {
+        span.textContent = span.dataset.pin;
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+      } else {
+        span.textContent = '••••••';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+      }
     }
 
     function handleTambahAkun(e) {
