@@ -359,7 +359,9 @@
             <span id="badgeStatusKas" class="badge bg-white bg-opacity-20 text-white fw-normal">
               Memuat status...
             </span>
-            <small class="text-white-50" style="font-size: 0.7rem;">Realtime Sync</small>
+            <button id="btnRefreshManual" onclick="refreshManual()" class="btn btn-sm p-0 border-0 text-white-50 d-flex align-items-center gap-1" style="background:transparent; font-size: 0.7rem;" title="Muat ulang data">
+              <i id="iconRefreshManual" class="fa-solid fa-rotate"></i> Refresh
+            </button>
           </div>
         </div>
       </div>
@@ -1284,8 +1286,31 @@
       });
     }
 
+    function refreshManual() {
+      const btn = document.getElementById('btnRefreshManual');
+      const icon = document.getElementById('iconRefreshManual');
+
+      btn.disabled = true;
+      icon.classList.add('fa-spin');
+
+      muatData().finally(() => {
+        btn.disabled = false;
+        icon.classList.remove('fa-spin');
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Data diperbarui',
+          toast: true,
+          position: 'top',
+          timer: 1200,
+          showConfirmButton: false,
+          customClass: { popup: 'swal2-popup-dark' }
+        });
+      });
+    }
+
     function muatData() {
-      fetch(`${SCRIPT_URL}?action=ambilData`)
+      return fetch(`${SCRIPT_URL}?action=ambilData`)
         .then(res => res.json())
         .then(result => {
           if (result.success) {
