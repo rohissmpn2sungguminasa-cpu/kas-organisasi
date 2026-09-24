@@ -42,6 +42,10 @@
       color: #f8fafc;
       font-size: 0.88rem;
 
+      /* Cegah scroll di dalam elemen (mis. tabel riwayat) menembus ke body
+         dan memicu pull-to-refresh native aplikasi (mis. Median.io) */
+      overscroll-behavior-y: contain;
+
       /* Safe Area Inset untuk PWA Fullscreen */
       padding-top: env(safe-area-inset-top);
       padding-bottom: env(safe-area-inset-bottom);
@@ -632,7 +636,30 @@
       muatData();
       inisiatorPindahEnter();
       inisiatorEnterUsername();
+      cegahPullToRefreshDiTabel();
     });
+
+    // Mencegah gesture pull-to-refresh native (mis. di app Median.io) salah ke-trigger
+    // saat pengguna sedang scroll DI DALAM tabel yang punya scroll sendiri (.tabel-scroll-5).
+    // Caranya: hentikan event sentuh (touch) di titik paling awal (capture phase) sebelum
+    // sempat "bocor" ke listener pull-to-refresh yang biasanya dipasang di document/window
+    // oleh library native app tersebut. Ini TIDAK mematikan pull-to-refresh secara umum,
+    // hanya menonaktifkannya khusus saat jari berada di atas tabel yang scrollable.
+    function cegahPullToRefreshDiTabel() {
+      const opsi = { capture: true, passive: true };
+
+      document.addEventListener('touchstart', function (e) {
+        if (e.target.closest('.tabel-scroll-5')) {
+          e.stopPropagation();
+        }
+      }, opsi);
+
+      document.addEventListener('touchmove', function (e) {
+        if (e.target.closest('.tabel-scroll-5')) {
+          e.stopPropagation();
+        }
+      }, opsi);
+    }
 
     function cekSesiLogin() {
       const savedUser = localStorage.getItem('kas_admin_user');
